@@ -49,6 +49,7 @@ app.use('/api/room', require('./routes/roomRoute'));
 app.use('/api/floor', require('./routes/floorRoute'));
 
 app.use('/api/customers', require('./routes/customerRoute'));
+app.use('/api/company', require('./routes/companyRoute'));
 app.use('/api/transactions', require('./routes/transactionRoute'));
 app.use('/api/expenses', require('./routes/expenseRoute'));
 app.use('/api/incomes', require('./routes/incomeRoute'));

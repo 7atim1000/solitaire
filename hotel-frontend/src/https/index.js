@@ -140,6 +140,12 @@ export const addCustomer = (data) => api.post('/api/customers', data);
 export const updateCustomer = ({customerId, ...balanceData}) => 
     api.put(`/api/customers/${customerId}`, balanceData);  // serviceData explain in Bill.jsx
 
+//  Companies Endpoint
+export const addCompany = (data) => api.post('/api/company', data);
+export const updateCompany = ({companyId, ...balanceData}) => 
+    api.put(`/api/company/${companyId}`, balanceData);  // serviceData explain in Bill.jsx
+
+
 // Category Endpoint
 export const getCategories = () => api.get('/api/category');
 export const addCategory = (data) => api.post('/api/category', data);

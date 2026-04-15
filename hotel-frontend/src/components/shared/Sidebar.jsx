@@ -179,10 +179,10 @@ const Sidebar = () => {
   const totalNotifications = checkedInCount + checkedOutCount + overdueCheckInCount + overdueCheckOutCount;
 
   return (
-    <div className='min-h-0 relative md:flex flex-col pt-2 max-w-13 md:max-w-75 w-full border-r-2 border-green-500 bg-white min-h-screen shadow-xl'>
+    <div className='min-h-0 relative md:flex flex-col pt-2 max-w-13 md:max-w-75 w-full border-r-5 border-gray-200 bg-white min-h-screen '>
       
       {/* Sidebar Header/Logo with Notifications */}
-      <div className="p-4 border-b border-green-200 bg-white">
+      <div className="p-4 shadow-lg/30 bg-white  border-b-5 border-gray-200">
         
         <div className="flex items-center justify-between gap-2">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center shadow-md">
@@ -338,7 +338,7 @@ const Sidebar = () => {
       </div>
 
       {/* User Profile at Bottom */}
-      <div className="p-4 border-t border-green-200 bg-gradient-to-b from-white to-green-50">
+      <div className="p-4 shadow-lg/30 bg-gradient-to-b from-white to-green-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-bold text-sm shadow-md">

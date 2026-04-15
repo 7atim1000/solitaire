@@ -22,6 +22,7 @@ import { FaUnity } from "react-icons/fa6";
 import { BiFoodMenu } from "react-icons/bi";
 import { FaConciergeBell } from "react-icons/fa";
 import { IoBookmarksOutline } from "react-icons/io5";
+import { SiCustomink } from "react-icons/si";
 
 export const SidebarMenuLinks = [
   
@@ -29,6 +30,11 @@ export const SidebarMenuLinks = [
     name: "Dashboard", 
     path: "/", 
     icon: BiSolidDashboard,
+  },
+  { 
+    name: "Companies", 
+    path: "/companies", 
+    icon: SiCustomink,
   },
   { 
     name: "Guests", 

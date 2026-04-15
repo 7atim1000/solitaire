@@ -5,7 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import { 
   Home, Reservation, Rooms, Menu, Dashboard, AddServices, 
-  Floors, Customers, Invoices, Categories, Services, Units, RoomBill, 
+  Floors, Customers, Companies, Invoices, Categories, Services, Units, RoomBill, 
   Transactions, Incomes, Expense, InvDetails, TaxesReport,
 } from './pages';
 
@@ -49,6 +49,7 @@ const AppContent = () => {
         <Route path="expense" element={<Expense />} />
         <Route path="income" element={<Incomes />} />
         <Route path="guests" element={<Customers />} />
+        <Route path="companies" element={<Companies />} />
         <Route path="invoices" element={<Invoices />} />
         <Route path="invdetails/:id" element={<InvDetails />} />
         <Route path="addservices" element={<AddServices />} />

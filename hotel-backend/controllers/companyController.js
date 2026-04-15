@@ -1,36 +1,33 @@
-const Customers = require('../models/customerModel');
+const Company = require('../models/companyModel');
 const {mongoose} = require('mongoose') ;
 const createHttpError = require('http-errors');
 
-const addCustomer = async(req, res, next) => {
+const addCompany = async(req, res, next) => {
     
     try {
-        const { customerName , email, contactNo, address ,Idnumber, balance, companies, personal, company } = req.body ;
-        const customer = { customerName , email, contactNo, address ,Idnumber, balance, companies, personal, company } ;
+        const { companyName , email, contactNo, address ,balance } = req.body ;
+        const company = { companyName , email, contactNo, address , balance } ;
         
-        const newCustomer = Customers(customer);
-        await newCustomer.save();
+        const newCompany = Company(company);
+        await newCompany.save();
 
-        res.status(201).json({ success: true, message: 'New customer added Successfully', data: newCustomer });
+        res.status(201).json({ success: true, message: 'New company added Successfully', data: newCompany });
 
     } catch (error) {
         next(error)
     }
-}
+};
 
-
-const getCustomers = async (req, res, next) => {
+const getCompanies = async (req, res, next) => {
     try {
 
         const { search, sort = '-createdAt', page = 1, limit = 10 } = req.body;
         const query = {
             ...(search && {
                 or: [
-                    { customerName: { $regex: search, $options: 'i' } },
+                    { companyName: { $regex: search, $options: 'i' } },
                     { contactNo: { $regex: search, $options: 'i' } },
-                    { Idnumber: { $regex: search, $options: 'i' } },
                     { address: { $regex: search, $options: 'i' } },
-                    { company: { $regex: search, $options: 'i' } },
                     { email: { $regex: search, $options: 'i' } },
                 ]
             })
@@ -47,27 +44,20 @@ const getCustomers = async (req, res, next) => {
         // Calculate pagination values
         const startIndex = (page - 1) * limit;
         // const endIndex = page * limit;
-        const total = await Customers.countDocuments(query);
+        const total = await Company.countDocuments(query);
 
         // Get paginated results
-        const customers = await Customers.find(query)
-            .populate([
-                {
-                    path: "company",
-                    select: "companyName email balance",
-                },
-               
-            ])
+        const companies = await Company.find(query)
             .sort(sortOption)
             .skip(startIndex)
             .limit(limit)
 
         // response
         res.status(200).json({
-            message: 'All customers fetched successfully',
+            message: 'All companies fetched successfully',
             success: true,
-            data: customers,
-            customers,
+            data: companies,
+            companies,
 
             pagination: {
                 currentPage: Number(page),
@@ -83,11 +73,11 @@ const getCustomers = async (req, res, next) => {
 
 };
 
-const removeCustomer = async(req, res, next) => {
+const removeCompany = async(req, res, next) => {
     try {
         
-        await Customers.findByIdAndDelete(req.body.id)
-        res.json({ success: true, message : 'Selected customer removed Successfully .' })
+        await Company.findByIdAndDelete(req.body.id)
+        res.json({ success: true, message : 'Selected company removed Successfully .' })
         
     } catch (error) {
         
@@ -95,8 +85,7 @@ const removeCustomer = async(req, res, next) => {
 }
 
 
-
-const updateCustomerBalance = async (req, res, next) => {
+const updateCompanyBalance = async (req, res, next) => {
    
     try {
 
@@ -108,7 +97,7 @@ const updateCustomerBalance = async (req, res, next) => {
             return next(error);
         };
 
-        const customer = await Customers.findByIdAndUpdate(
+        const company = await Company.findByIdAndUpdate(
             id,
             
             { balance },
@@ -116,12 +105,12 @@ const updateCustomerBalance = async (req, res, next) => {
         );
 
        
-        if (!customer) {
-            const error = createHttpError(404, 'Customer is not Exist!');
+        if (!company) {
+            const error = createHttpError(404, 'Company is not Exist!');
             return error;
         }
 
-        res.status(200).json({ success: true, message: 'Customer information updated successfully..', data: customer })
+        res.status(200).json({ success: true, message: 'Company balance updated successfully..', data: company })
         
     } catch (error) {
         next(error)
@@ -129,5 +118,6 @@ const updateCustomerBalance = async (req, res, next) => {
 
 };
 
+module.exports = { addCompany, getCompanies, removeCompany, updateCompanyBalance }
 
-module.exports = { addCustomer, getCustomers, removeCustomer, updateCustomerBalance }
+

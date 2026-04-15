@@ -284,28 +284,28 @@ const PaymentInvoice = ({ paymentInfo, setPaymentInvoice }) => {
                                 <span className="value">{paymentInfo.paymentMethod}</span>
                             </div>
 
-                            <div className="section-title">Guest Details</div>
+                            <div className="section-title">Company Details</div>
                             <div className="guest-details">
                                 <div className="guest-grid">
                                     <div className="guest-item">
                                         <MdPerson className="guest-icon" />
                                         <div>
                                             <div className="guest-label">Name</div>
-                                            <div className="guest-value">{paymentInfo.customerDetails.name}</div>
+                                            <div className="guest-value">{paymentInfo.companyName}</div>
                                         </div>
                                     </div>
                                     <div className="guest-item">
                                         <MdEmail className="guest-icon" />
                                         <div>
                                             <div className="guest-label">Email</div>
-                                            <div className="guest-value">{paymentInfo.customerDetails.email}</div>
+                                            <div className="guest-value">{paymentInfo.company.email}</div>
                                         </div>
                                     </div>
                                     <div className="guest-item">
                                         <MdPhone className="guest-icon" />
                                         <div>
                                             <div className="guest-label">Phone</div>
-                                            <div className="guest-value">{paymentInfo.customerDetails.phone}</div>
+                                            <div className="guest-value">{paymentInfo.company.contactNo}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -326,7 +326,7 @@ const PaymentInvoice = ({ paymentInfo, setPaymentInvoice }) => {
                             <div className="signature-area">
                                 <div className="signature-grid">
                                     <div>
-                                        <div className="label">Customer Signature</div>
+                                        <div className="label">Signature</div>
                                         <div className="signature-line"></div>
                                     </div>
                                     <div>
@@ -425,22 +425,22 @@ const PaymentInvoice = ({ paymentInfo, setPaymentInvoice }) => {
                                     <div className="flex items-center gap-3">
                                         <MdPerson className="w-5 h-5 text-emerald-600" />
                                         <div>
-                                            <p className="text-sm text-emerald-600">Guest Name</p>
-                                            <p className="font-semibold text-emerald-900">{paymentInfo.customerDetails.name}</p>
+                                            <p className="text-sm text-emerald-600">Company Name</p>
+                                            <p className="font-semibold text-emerald-900">{paymentInfo.company.companyName}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <MdEmail className="w-5 h-5 text-emerald-600" />
                                         <div>
                                             <p className="text-sm text-emerald-600">Email</p>
-                                            <p className="font-semibold text-emerald-900">{paymentInfo.customerDetails.email}</p>
+                                            <p className="font-semibold text-emerald-900">{paymentInfo.company.email}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <MdPhone className="w-5 h-5 text-emerald-600" />
                                         <div>
                                             <p className="text-sm text-emerald-600">Phone</p>
-                                            <p className="font-semibold text-emerald-900">{paymentInfo.customerDetails.phone}</p>
+                                            <p className="font-semibold text-emerald-900">{paymentInfo.company.contactNo}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -467,7 +467,7 @@ const PaymentInvoice = ({ paymentInfo, setPaymentInvoice }) => {
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <p className="text-sm text-emerald-600 mb-2">Customer Signature</p>
+                                    <p className="text-sm text-emerald-600 mb-2">Signature</p>
                                     <div className="h-12 border-b-2 border-dashed border-emerald-300"></div>
                                 </div>
                                 <div>
@@ -519,4 +519,3 @@ const PaymentInvoice = ({ paymentInfo, setPaymentInvoice }) => {
 }
 
 export default PaymentInvoice;
-

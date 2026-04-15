@@ -4,6 +4,7 @@ const orderSchema = new mongoose.Schema ({
     
     customerDetails : {
         name: { type: String},
+        company: { type: String},
         email: { type: String},
         phone: { type: String },
         guests: { type: Number },
@@ -29,6 +30,8 @@ const orderSchema = new mongoose.Schema ({
 
     room : { type: mongoose.Schema.Types.ObjectId, ref: "Room" },
     customer : { type: mongoose.Schema.Types.ObjectId, ref: "Customers" },
+    company : { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
+    companyName : { type: String },
     seats : { type: String },
     guests : { type: String },
     

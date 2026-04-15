@@ -229,96 +229,6 @@ const addOrder = async (req, res, next) => {
 
 };
 
-
-// const getOrders = async (req, res, next ) => {
-    
-//     try {
-        
-//         const { frequency ,orderStatus , orderType ,shift, sort ='-createdAt', search, page = 1, limit = 10 } = req.body ;
-
-//         const query = {
-//             orderDate: {
-//                 $gt: moment().subtract(Number(frequency), "d").toDate(),
-//             },
-//             ...(orderStatus && orderStatus !== 'all' && { orderStatus }),
-//             ...(orderType && orderType !== 'all' && { orderType }),
-//             ...(shift && shift !== 'all' && { shift }),
-
-//             //To search on nested fields like customerDetails.name, you need to use dot notation in your MongoDB
-//             ...(search && {
-//                 $or: [
-//                     { shift: { $regex: search, $options: 'i' } },
-//                     { orderNo: { $regex: search, $options: 'i' } },
-//                     { 'customerDetails.name': { $regex: search, $options: 'i' } },
-//                     { 'customerDetails.email': { $regex: search, $options: 'i' } },
-//                 ]
-//             })
-
-//         };
-        
-//         // In your backend (getEmployees function)
-//         let sortOption = {};
-//         if (sort === '-createdAt') {
-//             sortOption = { createdAt: -1 }; // Newest first
-//         } else if (sort === 'createdAt') {
-//             sortOption = { createdAt: 1 }; // Oldest first
-
-//         } else if (sort === 'orderStatus') {
-//             sortOption = { type: 1 }; // A-Z
-//         } else if (sort === '-orderStatus') {
-//             sortOption = { type: -1 }; // Z-A
-//         } 
-
-        
-//         // Calculate pagination values
-//         const startIndex = (page - 1) * limit;
-//         // const endIndex = page * limit;
-//         const total = await Order.countDocuments(query) .populate([
-//                 {
-//                     path: "room",
-//                     select: "roomNo",
-//                 },
-//                 {
-//                     path: "user",
-//                     select: "name",
-//                 },
-//             ])
-
-//         // Get paginated results
-//         const orders = await Order.find(query) .populate([
-//                 {
-//                     path: "room",
-//                     select: "roomNo",
-//                 },
-//                 {
-//                     path: "user",
-//                     select: "name",
-//                 },
-//             ])
-//             .sort(sortOption)
-//             .skip(startIndex)
-//             .limit(limit);
-
-//         res.status(200).json({
-//             message: 'All orders fetched successfully',
-//             success: true,
-//             data: orders,
-//             orders,
-
-//             pagination: {
-//                 currentPage: Number(page),
-//                 limit: Number(limit),
-//                 total,
-//                 totalPages: Math.ceil(total / limit)
-//             }
-//         });
-        
-
-//     } catch (error) {
-//         next(error)
-//     }
-// };
-
 const getOrders = async (req, res, next) => {
     try {
         const { frequency, orderStatus, orderType, shift, sort = '-createdAt', search, page = 1, limit = 10 } = req.body;
@@ -390,6 +300,10 @@ const getOrders = async (req, res, next) => {
                 {
                     path: "customer",
                     select: "customerName balance",
+                },
+                {
+                    path: "company",
+                    select: "companyName balance contactNo email",
                 },
             ])
             .sort(sortOption)
@@ -471,27 +385,6 @@ const updateOrder = async (req, res, next) => {
     }
 };
 
-
-// const getOrderCustomer = async (req, res) => {
-
-//     try {
-//         const { customer } = req.body;
-
-//         const order = await Order.find({
-//             // customer: customer
-            
-//         });
-
-//         res.status(200).json(order);
-
-//     } catch (error) {
-//         console.log(error)
-//         res.status(500).json(error)
-
-//     }
-
-// };
-
 const getOrderCustomer = async (req, res) => {
     try {
         const { customer } = req.body;
@@ -528,4 +421,39 @@ const getOrderCustomer = async (req, res) => {
 };
 
 
-module.exports = { addOrder, getOrderById, getOrders, updateOrder, extraOrder ,updateTotals, getOrderCustomer }
+const getOrderCompany = async (req, res) => {
+    try {
+        const { company } = req.body;
+
+        // Validate customer ID
+        if (!company) {
+            return res.status(400).json({
+                success: false,
+                message: "Company ID is required"
+            });
+        }
+
+        // Find orders for this specific customer
+        const orders = await Order.find({
+            company: company
+        }).sort({ createdAt: -1 }); // Optional: sort by newest first
+
+        // Return success response
+        res.status(200).json({
+            success: true,
+            message: "Company orders fetched successfully",
+            data: orders,
+            count: orders.length
+        });
+
+    } catch (error) {
+        console.log("Error fetching company orders:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message
+        });
+    }
+};
+
+module.exports = { addOrder, getOrderById, getOrders, updateOrder, extraOrder ,updateTotals, getOrderCustomer, getOrderCompany }

@@ -5,19 +5,19 @@ import { toast } from 'react-toastify'
 import { IoCloseCircle } from 'react-icons/io5';
 import { MdPerson, MdEmail, MdPhone, MdLocationOn, MdAttachMoney, MdUpdate } from "react-icons/md";
 
-const CustomerUpdate = ({ customer, setIsEditCustomerModal, fetchCustomers }) => {
+const CompanyUpdate = ({ company, setIsEditCompanyModal, fetchCompanies }) => {
     const [loading, setLoading] = useState(false);
     
     const handleClose = () => {
-        setIsEditCustomerModal(false);
+        setIsEditCompanyModal(false);
     };
 
     // Keep the exact same state structure
-    const [customerName, setCustomerName] = useState(customer.customerName);
-    const [email, setEmail] = useState(customer.email);
-    const [contactNo, setContactNo] = useState(customer.contactNo);
-    const [address, setAddress] = useState(customer.address);
-    const [balance, setBalance] = useState(customer.balance);
+    const [companyName, setCompanyName] = useState(company.companyName);
+    const [email, setEmail] = useState(company.email);
+    const [contactNo, setContactNo] = useState(company.contactNo);
+    const [address, setAddress] = useState(company.address);
+    const [balance, setBalance] = useState(company.balance);
 
     const onSubmitHandler = async (event) => {
         event.preventDefault();
@@ -26,18 +26,18 @@ const CustomerUpdate = ({ customer, setIsEditCustomerModal, fetchCustomers }) =>
         try {
             // Send as JSON (removing multipart/form-data)
             const updateData = {
-                customerName,
+                companyName,
                 email,
                 contactNo,
                 address,
                 balance
             };
             
-            const { data } = await api.put(`/api/customers/${customer._id}`, updateData);
+            const { data } = await api.put(`/api/company/${company._id}`, updateData);
 
             if (data.success) {
                 toast.success(data.message);
-                fetchCustomers();
+                fetchCompanies();
                 handleClose();
             } else {
                 toast.error(data.message);
@@ -67,8 +67,8 @@ const CustomerUpdate = ({ customer, setIsEditCustomerModal, fetchCustomers }) =>
                                 <MdPerson className="text-white w-5 h-5" />
                             </div>
                             <div>
-                                <h2 className='text-xl font-bold text-white'>Update Customer</h2>
-                                <p className='text-emerald-100 text-sm'>Modify customer details</p>
+                                <h2 className='text-xl font-bold text-white'>Update Company</h2>
+                                <p className='text-emerald-100 text-sm'>Modify company details</p>
                             </div>
                         </div>
                         <button 
@@ -88,14 +88,14 @@ const CustomerUpdate = ({ customer, setIsEditCustomerModal, fetchCustomers }) =>
                         <div className="mb-4">
                             <label className='text-sm font-medium text-gray-700 flex items-center gap-2 mb-2'>
                                 <MdPerson className="text-emerald-600 w-4 h-4" />
-                                Customer Name
+                                Company Name
                             </label>
                             <div className="relative">
                                 <input
                                     type='text'
-                                    value={customerName}
-                                    onChange={(e) => setCustomerName(e.target.value)}
-                                    placeholder='Enter customer name'
+                                    value={companyName}
+                                    onChange={(e) => setCompanyName(e.target.value)}
+                                    placeholder='Enter company name'
                                     className='w-full px-4 py-3 pl-10 bg-white border border-emerald-200 rounded-lg 
                                              text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 
                                              focus:border-transparent transition duration-200'
@@ -193,12 +193,11 @@ const CustomerUpdate = ({ customer, setIsEditCustomerModal, fetchCustomers }) =>
                                              focus:border-transparent transition duration-200'
                                     required
                                     autoComplete='off'
-                                    // disabled={loading}
                                     disabled
                                 />
                                 <MdAttachMoney className='absolute left-3 top-1/2 transform -translate-y-1/2 text-emerald-600' />
                                 <span className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm'>
-                                    AED
+                                    SD
                                 </span>
                             </div>
                             <p className="text-xs text-gray-500 mt-2">
@@ -225,7 +224,7 @@ const CustomerUpdate = ({ customer, setIsEditCustomerModal, fetchCustomers }) =>
                             ) : (
                                 <>
                                     <MdUpdate className="w-4 h-4" />
-                                    <span>Update Customer</span>
+                                    <span>Update Company</span>
                                 </>
                             )}
                         </button>
@@ -248,4 +247,4 @@ const CustomerUpdate = ({ customer, setIsEditCustomerModal, fetchCustomers }) =>
     );
 };
 
-export default CustomerUpdate;
+export default CompanyUpdate;

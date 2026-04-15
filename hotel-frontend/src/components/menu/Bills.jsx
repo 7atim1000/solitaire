@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react'
-import { addOrder, addTransaction, updateCustomer, updateRoom } from '../../https';
+import { addOrder, addTransaction, updateCustomer, updateRoom, updateCompany } from '../../https';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTotalPrice } from '../../redux/slices/cartSlice';
 import { removeAllItems } from '../../redux/slices/cartSlice';
@@ -55,6 +55,11 @@ const Bills = () => {
     const dateReturn = firstItem.dateReturn || "";
     const bookingDays = Number(firstItem.bookingDays || firstItem.qty || 0);
 
+    // Helper function to check if customer is corporate
+    const isCorporateCustomer = () => {
+        return customerData.companies === true;
+    };
+
     const showPayed = () => {
         setPayedAmount(calculations.totalPriceWithTax.toFixed(2));
     }
@@ -69,7 +74,6 @@ const Bills = () => {
         setPaymentMethod('Online');
         showPayed();
         setIsInputDisabled(false); 
-       
     }
 
     const handlePayedAmountChange = (e) => {
@@ -98,7 +102,7 @@ const Bills = () => {
                 dateBooking: orderDataFromServer.dateBooking || dateBooking,
                 dateReturn: orderDataFromServer.dateReturn || dateReturn,
                 bookingDays: orderDataFromServer.bookingDays || bookingDays,
-                
+            
                 customerDetails: {
                     name: orderDataFromServer.customerDetails?.name || customerData.customerName,
                     phone: orderDataFromServer.customerDetails?.phone || customerData.contactNo,
@@ -136,6 +140,7 @@ const Bills = () => {
         onError: (error) => {
             console.error('Order error:', error);
             toast.error('Failed to place order');
+            throw error;
         }
     });
 
@@ -147,6 +152,7 @@ const Bills = () => {
         onError: (error) => {
             console.error('Room update error:', error);
             toast.error('Room update failed');
+            throw error;
         }
     });
 
@@ -157,6 +163,7 @@ const Bills = () => {
         },
         onError: (error) => {
             console.error('Transaction error:', error);
+            throw error;
         }
     });
 
@@ -166,143 +173,228 @@ const Bills = () => {
         };
     }, []);
 
+    ////////////////////////////////////////////////
     const customerUpdateMutation = useMutation({
         mutationFn: updateCustomer,
         onSuccess: (resData) => {
             if (!isMounted.current) return;
-            console.log('Customer balance updated:', resData);
+            console.log('Customer balance updated successfully:', resData);
+            toast.success('Customer balance updated successfully');
         },
         onError: (error) => {
             if (!isMounted.current) return;
-            console.error('Customer update error:', error);
+            console.error('Customer update error - Full error:', error);
+            console.error('Error response data:', error.response?.data);
+            console.error('Error status:', error.response?.status);
+            console.error('Error message:', error.message);
+            
+            // More detailed error message
+            const errorMessage = error.response?.data?.message || error.message || 'Failed to update customer balance';
+            toast.error(`Customer balance update failed: ${errorMessage}`);
+            throw error;
         }
     });
 
+    const companyUpdateMutation = useMutation({
+        mutationFn: updateCompany,
+        onSuccess: (resData) => {
+            if (!isMounted.current) return;
+            console.log('Company balance updated successfully:', resData);
+            toast.success('Company balance updated successfully');
+        },
+        onError: (error) => {
+            if (!isMounted.current) return;
+            console.error('Company update error:', error);
+            console.error('Error response data:', error.response?.data);
+            toast.error(`Company balance update failed: ${error.response?.data?.message || error.message}`);
+            throw error;
+        }
+    });
+
+    /////////////////////////////////////////////////////////
     const handlePlaceOrder = async () => {
-        if (!customerData.customerName) {
-            toast.warning('Please select customer!');
-            return;
-        }
+    if (!customerData.customerName) {
+        toast.warning('Please select customer!');
+        return;
+    }
 
-        if (!paymentMethod) {
-            enqueueSnackbar('Please select a payment method', { variant: "warning" });
-            return;
-        }
+    if (!paymentMethod) {
+        enqueueSnackbar('Please select a payment method', { variant: "warning" });
+        return;
+    }
 
-        if (cartData.length === 0) {
-            toast.warning('Please add services to the cart!');
-            return;
-        }
+    if (cartData.length === 0) {
+        toast.warning('Please add services to the cart!');
+        return;
+    }
 
-        if (!roomData?._id) {
-            toast.warning('Please select a room!');
-            return;
-        }
+    if (!roomData?._id) {
+        toast.warning('Please select a room!');
+        return;
+    }
 
-        try {
-        
-            // Prepare cart items with proper structure
-            const formattedCartItems = cartData.map(item => ({
-                id: item.id,
-                name: item.name,
-                pricePerQuantity: item.pricePerQuantity,
-                quantity: item.quantity,
-                qty: item.qty,
-                price: item.price,
-                dateBooking: item.dateBooking,
-                dateReturn: item.dateReturn,
-                bookingDays: item.bookingDays,
-                seats: item.seats,
-                priceType: item.priceType || 'priceOne',
-                floor: item.floor,
-                image: item.image
-            }));
+    try {
+        setIsProcessing(true);
+    
+        // Prepare cart items with proper structure
+        const formattedCartItems = cartData.map(item => ({
+            id: item.id,
+            name: item.name,
+            pricePerQuantity: item.pricePerQuantity,
+            quantity: item.quantity,
+            qty: item.qty,
+            price: item.price,
+            dateBooking: item.dateBooking,
+            dateReturn: item.dateReturn,
+            bookingDays: item.bookingDays,
+            seats: item.seats,
+            priceType: item.priceType || 'priceOne',
+            floor: item.floor,
+            image: item.image
+        }));
 
-            const orderData = {
-                customerDetails: {
-                    name: customerData.customerName,
-                    email: customerData.email,
-                    phone: customerData.contactNo,
-                    guests: customerData.guests,
-                    Idnumber: customerData.Idnumber,
-                },
-                orderStatus: "In Progress",
-                bills: {
-                    total: calculations.totalPriceWithTax,
-                    tax: calculations.tax,
-                    totalWithTax: calculations.totalPriceWithTax,
-                    payed: Number(payedAmount),
-                    balance: balance,
-                },
-                items: formattedCartItems,
-                room: roomData._id,
-                customer: customerData.customerId,
+        const orderData = {
+            customerDetails: {
+                name: customerData.customerName,
+                email: customerData.email,
+                phone: customerData.contactNo,
                 guests: customerData.guests,
-                paymentMethod: paymentMethod,
-                dateBooking,
-                dateReturn,
-                bookingDays,
-                user: userData._id,
-                orderNo: customerData.orderId,
-                orderType: "Invoice",
+                Idnumber: customerData.Idnumber,
+            },
+            orderStatus: "In Progress",
+            bills: {
+                total: calculations.totalPriceWithTax,
+                tax: calculations.tax,
+                totalWithTax: calculations.totalPriceWithTax,
+                payed: Number(payedAmount),
+                balance: balance,
+            },
+            items: formattedCartItems,
+            room: roomData._id,
+            customer: customerData.customerId,
+            // Fix: Send null for company if it's not a corporate customer
+            company: isCorporateCustomer() && customerData.companyId ? customerData.companyId : null,
+            companyName: isCorporateCustomer() ? customerData.company : null,
+            guests: customerData.guests,
+            paymentMethod: paymentMethod,
+            dateBooking,
+            dateReturn,
+            bookingDays,
+            user: userData._id,
+            orderNo: customerData.orderId,
+            orderType: "Invoice",
+        };
+
+        console.log('Order Data:', orderData);
+
+        // 1. Create order
+        const orderDataFromServer = await orderMutation.mutateAsync(orderData);
+        console.log('Order created:', orderDataFromServer);
+
+        // 2. Update room
+        const roomUpdatePayload = {
+            roomId: roomData._id,
+            status: "booked",
+            bookedBy: customerData.customerName,
+            dateBooking: dateBooking,
+            dateReturn: dateReturn,
+            orderId: orderDataFromServer._id,
+            guests: orderDataFromServer.customerDetails?.guests || customerData.guests
+        };
+
+        await roomUpdateMutation.mutateAsync(roomUpdatePayload);
+        console.log('Room updated successfully');
+
+        // 3. Add transaction if payment was made
+        if (payedAmount > 0) {
+            const transactionData = {
+                transactionNumber: `${Date.now()}`,
+                amount: Number(payedAmount),
+                type: 'Income',
+                category: 'Reservation',
+                refrence: customerData.customerName,
+                description: 'Room reservation payment',
+                date: new Date().toISOString().slice(0, 10)
             };
+            await transactionMutation.mutateAsync(transactionData);
+            console.log('Transaction added successfully');
+        }
 
-            // 1. Create order
-            const orderDataFromServer = await orderMutation.mutateAsync(orderData);
-
-            // 2. Update room
-            const roomUpdatePayload = {
-                roomId: roomData._id,
-                status: "booked",
-                bookedBy: customerData.customerName,
-                dateBooking: dateBooking,
-                dateReturn: dateReturn,
-                orderId: orderDataFromServer._id,
-                guests: orderDataFromServer.customerDetails?.guests || customerData.guests
-            };
-
-            await roomUpdateMutation.mutateAsync(roomUpdatePayload);
-
-            // 3. Add transaction if payment was made
-            if (payedAmount > 0) {
-                const transactionData = {
-                    transactionNumber: `${Date.now()}`,
-                    amount: Number(payedAmount),
-                    type: 'Income',
-                    category: 'Reservation',
-                    refrence: customerData.customerName,
-                    description: 'Room reservation payment',
-                    date: new Date().toISOString().slice(0, 10)
-                };
-                await transactionMutation.mutateAsync(transactionData);
+        // 4 & 5. Update balance based on customer type
+        if (isCorporateCustomer()) {
+            console.log('Updating COMPANY balance for corporate customer');
+            console.log('Company ID:', customerData.companyId);
+            console.log('Current company balance:', customerData.companyBalance);
+            console.log('Balance to add:', balance);
+            
+            // Validate companyId exists
+            if (!customerData.companyId) {
+                throw new Error('Company ID is missing. Please reselect the corporate customer.');
             }
+            
+            // For corporate customers - Update COMPANY balance
+            const previousCompanyBalance = Number(customerData.companyBalance) || 0;
+            const newCompanyBalance = Number((previousCompanyBalance + Number(balance)).toFixed(2));
 
-            // 4. Update customer balance
-            const previousBalance = customerData.balance || 0;
-            const newBalance = previousBalance + balance;
+            const companyUpdatePayload = {
+                companyId: customerData.companyId,
+                balance: newCompanyBalance
+            };
+
+            console.log('Company update payload:', companyUpdatePayload);
+            await companyUpdateMutation.mutateAsync(companyUpdatePayload);
+            console.log(`Company balance updated from ${previousCompanyBalance} to ${newCompanyBalance}`);
+        } else {
+            console.log('Updating CUSTOMER balance for personal customer');
+            console.log('Customer ID:', customerData.customerId);
+            console.log('Current customer balance:', customerData.balance);
+            console.log('Balance to add:', balance);
+            
+            // Validate customerId exists
+            if (!customerData.customerId) {
+                throw new Error('Customer ID is missing. Please reselect the customer.');
+            }
+            
+            // For personal customers - Update CUSTOMER balance
+            const previousBalance = Number(customerData.balance) || 0;
+            const newBalance = Number((previousBalance + Number(balance)).toFixed(2));
 
             const customerUpdatePayload = {
                 customerId: customerData.customerId,
                 balance: newBalance
             };
 
+            console.log('Customer update payload:', customerUpdatePayload);
             await customerUpdateMutation.mutateAsync(customerUpdatePayload);
-
-            // 5. Reset UI
-            setShowInvoice(true);
-            dispatch(removeCustomer());
-            dispatch(removeAllItems());
-            dispatch(removeRoom());
-            setPaymentMethod('');
-            setPayedAmount(0);
-            setIsProcessing(false);
-
-        } catch (error) {
-            console.error('Error in handlePlaceOrder:', error);
-            toast.error('Failed to process order. Please try again.');
-            setIsProcessing(false);
+            console.log(`Customer balance updated from ${previousBalance} to ${newBalance}`);
         }
-    };
+
+        // 6. Reset UI
+        setShowInvoice(true);
+        dispatch(removeCustomer());
+        dispatch(removeAllItems());
+        dispatch(removeRoom());
+        setPaymentMethod('');
+        setPayedAmount(0);
+        setIsProcessing(false);
+
+    } catch (error) {
+        console.error('Error in handlePlaceOrder:', error);
+        console.error('Error details:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+            config: error.config
+        });
+        
+        // Show more specific error message
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to process order. Please try again.';
+        toast.error(errorMessage);
+        setIsProcessing(false);
+    }
+};
+    /////////////////////////////////////////////////////////////////////////////////
+    
 
     // Format currency function
     const formatCurrency = (amount) => {
@@ -320,7 +412,6 @@ const Bills = () => {
                         </div>
                         <div>
                             <h2 className="text-xl md:text-2xl font-bold">Payment Summary</h2>
-                            {/* <p className="text-emerald-100 text-sm mt-1">Complete your booking</p> */}
                         </div>
                     </div>
                     <div className="text-right">
@@ -334,41 +425,6 @@ const Bills = () => {
 
             {/* Bill Breakdown */}
             <div className="p-4 md:p-6 space-y-4">
-                {/* Subtotal */}
-                {/* <div className="flex justify-between items-center p-3 bg-emerald-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-white p-2 rounded-md border border-emerald-200">
-                            <span className="text-sm font-medium text-emerald-700">Subtotal</span>
-                        </div>
-                        <span className="text-sm text-emerald-600">
-                            ({cartData.length} {cartData.length === 1 ? 'item' : 'items'})
-                        </span>
-                    </div>
-                    <div className="text-right">
-                        <p className="text-lg font-bold text-emerald-800">
-                            {formatCurrency(total)} <span className="text-sm text-emerald-600">SD</span>
-                        </p>
-                    </div>
-                </div> */}
-
-                {/* Tax */}
-                {/* <div className="flex justify-between items-center p-3 bg-emerald-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-white p-2 rounded-md border border-emerald-200">
-                            <FaPercentage className="text-emerald-600" size={14} />
-                        </div>
-                        <div>
-                            <span className="text-sm font-medium text-emerald-700">Tax</span>
-                            <span className="text-xs text-emerald-500 ml-2">({taxRate}%)</span>
-                        </div>
-                    </div>
-                    <div className="text-right">
-                        <p className="text-lg font-bold text-emerald-800">
-                            {formatCurrency(calculations.tax)} <span className="text-sm text-emerald-600">SD</span>
-                        </p>
-                    </div>
-                </div> */}
-
                 {/* Grand Total */}
                 <div className="flex justify-between items-center p-4 bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-xl">
                     <div className="flex items-center gap-3">
@@ -493,56 +549,6 @@ const Bills = () => {
 
                 {/* Action Buttons */}
                 <div className="grid grid-cols-1 md:grid-cols-1 gap-3 pt-2 border-t border-emerald-100">
-                    {/* <button 
-                        onClick={() => {
-                            // For print receipt without placing order
-                            if (cartData.length > 0 && customerData.customerName) {
-                                // Create temporary order info for printing
-                                const tempOrderInfo = {
-                                    _id: `TEMP-${Date.now()}`,
-                                    orderNo: customerData.orderId || `TEMP-${Date.now()}`,
-                                    orderStatus: "Draft",
-                                    paymentMethod: paymentMethod || 'Not Selected',
-                                    dateBooking,
-                                    dateReturn,
-                                    bookingDays,
-                                    customerDetails: {
-                                        name: customerData.customerName,
-                                        phone: customerData.contactNo,
-                                        guests: customerData.guests,
-                                        Idnumber: customerData.Idnumber,
-                                        email: customerData.email,
-                                    },
-                                    bills: {
-                                        total: calculations.totalPriceWithTax,
-                                        tax: calculations.tax,
-                                        totalWithTax: calculations.totalPriceWithTax,
-                                        payed: Number(payedAmount),
-                                        balance: balance,
-                                    },
-                                    items: cartData.map(item => ({
-                                        id: item.id,
-                                        name: item.name,
-                                        quantity: item.quantity,
-                                        price: item.price,
-                                        pricePerQuantity: item.pricePerQuantity,
-                                        priceType: item.priceType || 'priceOne',
-                                        seats: item.seats,
-                                    }))
-                                };
-                                setOrderInfo(tempOrderInfo);
-                                setShowInvoice(true);
-                            } else {
-                                toast.warning('Please add items to cart and select customer first');
-                            }
-                        }}
-                        className="group bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
-                        disabled={isProcessing}
-                    >
-                        <FaPrint />
-                        <span>Print Receipt</span>
-                    </button> */}
-                    
                     <button
                         onClick={handlePlaceOrder}
                         disabled={!paymentMethod || cartData.length === 0 || isProcessing}
